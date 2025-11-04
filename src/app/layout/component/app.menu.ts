@@ -33,6 +33,7 @@ export class AppMenu {
                 icon: 'pi pi-fw pi-briefcase',
                 routerLink: ['/pages'],
                 items: [
+                    { label: 'Categorias', icon: 'pi pi-fw pi-tags', routerLink: ['/home/categories'] },
                     ...(isAdmin ? [{ label: 'Usuários', icon: 'pi pi-fw pi-users', routerLink: ['/home/users'] }] : []),
                     {
                         label: 'Not Found',
