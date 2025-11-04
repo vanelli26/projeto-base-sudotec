@@ -6,7 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageService } from 'primeng/api';
 import { Toast } from 'primeng/toast';
-import { RegisterService } from './register-service';
+import { RegisterService } from '../../../services/register-service';
 import { RegisterInput } from '@/models/registerInput';
 
 @Component({
