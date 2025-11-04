@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
@@ -9,7 +9,8 @@ import { RippleModule } from 'primeng/ripple';
 import { MessageService } from 'primeng/api';
 import { Toast } from 'primeng/toast';
 import { LoginService } from '@/pages/auth/login/login-service';
-import { LoginInput } from '@/models/loginInput';
+import { AuthModel } from '@/models/auth.model';
+import { AuthService } from '@/services/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -22,27 +23,30 @@ export class Login {
     formBuilder = inject(FormBuilder);
     messageService = inject(MessageService);
     loginService = inject(LoginService);
+    authService = inject(AuthService);
+    router = inject(Router);
 
     loginForm = this.formBuilder.group({
-        email: ['', [Validators.required, Validators.email]],
+        username: ['', [Validators.required]],
         password: ['', [Validators.required]]
     });
 
-    checked: boolean = false;
-
     validarLogin() {
         if (this.loginForm.invalid) {
-            this.messageService.add({ severity: 'info', summary: 'Informação', detail: 'Usuário e Senha Incorretos' });
+            this.messageService.add({ severity: 'info', summary: 'Informação', detail: 'Preencha todos os campos corretamente' });
+            return;
         }
 
-        let loginInput = this.loginForm.value as LoginInput;
+        let loginInput = this.loginForm.value as AuthModel;
 
         this.loginService.login(loginInput).subscribe({
-            next: (loginResponse) => {
-                alert(loginResponse);
+            next: (userData) => {
+                this.authService.saveAuthData(userData);
+                this.router.navigate(['/home']);
             },
             error: (err) => {
-                this.messageService.add({ severity: 'warn', summary: 'Erro de Login', detail: err.error.message });
+                const errorMessage = err.error?.error || 'Erro ao realizar login';
+                this.messageService.add({ severity: 'error', summary: 'Erro de Login', detail: errorMessage });
             }
         });
     }

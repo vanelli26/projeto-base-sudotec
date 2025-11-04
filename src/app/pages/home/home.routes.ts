@@ -6,6 +6,9 @@ export const homeRoutes: Routes = [
     {
         path: '',
         component: AppLayout,
-        children: [{ path: 'dashboard', component: Dashboard }]
+        children: [
+            { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+            { path: 'dashboard', component: Dashboard }
+        ]
     }
 ];

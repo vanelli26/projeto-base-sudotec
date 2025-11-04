@@ -25,31 +25,64 @@
                             />
                         </g>
                     </svg>
-                    <div class="text-surface-900 dark:text-surface-0 text-xl sm:text-2xl md:text-3xl font-medium mb-3 sm:mb-4 px-2">Bem Vindo ao Controle de
-                        Finanças!
+                    <div class="text-surface-900 dark:text-surface-0 text-xl sm:text-2xl md:text-3xl font-medium mb-3 sm:mb-4 px-2">
+                        Criar Nova Conta
                     </div>
-                    <span class="text-muted-color font-medium text-sm sm:text-base">Faça login para prosseguir</span>
+                    <span class="text-muted-color font-medium text-sm sm:text-base">Preencha os dados para se cadastrar</span>
                 </div>
 
                 <div>
-                    <form [formGroup]="loginForm">
+                    <form [formGroup]="registerForm">
                         <label for="username"
-                               class="block text-surface-900 dark:text-surface-0 text-base sm:text-lg md:text-xl font-medium mb-2">Usuário</label>
-                        <input pInputText id="username" formControlName="username" type="text" placeholder="Nome de usuário"
-                               class="w-full mb-4 sm:mb-6 md:mb-8" />
+                               class="block text-surface-900 dark:text-surface-0 text-base sm:text-lg md:text-xl font-medium mb-2">
+                            Usuário
+                        </label>
+                        <input pInputText
+                               id="username"
+                               formControlName="username"
+                               type="text"
+                               placeholder="Nome de usuário (mínimo 3 caracteres)"
+                               class="w-full mb-4 sm:mb-6" />
 
                         <label for="password"
-                               class="block text-surface-900 dark:text-surface-0 font-medium text-base sm:text-lg md:text-xl mb-2">Password</label>
-                        <p-password id="password" formControlName="password" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true"
-                                    [feedback]="false"></p-password>
+                               class="block text-surface-900 dark:text-surface-0 font-medium text-base sm:text-lg md:text-xl mb-2">
+                            Senha
+                        </label>
+                        <p-password
+                            id="password"
+                            formControlName="password"
+                            placeholder="Senha (mínimo 4 caracteres)"
+                            [toggleMask]="true"
+                            styleClass="mb-4"
+                            [fluid]="true"
+                            [feedback]="true">
+                        </p-password>
+
+                        <label for="confirmPassword"
+                               class="block text-surface-900 dark:text-surface-0 font-medium text-base sm:text-lg md:text-xl mb-2">
+                            Confirmar Senha
+                        </label>
+                        <p-password
+                            id="confirmPassword"
+                            formControlName="confirmPassword"
+                            placeholder="Confirme sua senha"
+                            [toggleMask]="true"
+                            styleClass="mb-4 sm:mb-6 md:mb-8"
+                            [fluid]="true"
+                            [feedback]="false">
+                        </p-password>
 
                         <div class="flex flex-col gap-3">
-                            <p-button label="Login" styleClass="w-full" (onClick)="validarLogin()"></p-button>
+                            <p-button
+                                label="Criar Conta"
+                                styleClass="w-full"
+                                (onClick)="validarCadastro()">
+                            </p-button>
 
                             <div class="text-center">
-                                <span class="text-muted-color text-sm">Não possui uma conta? </span>
-                                <a routerLink="/register" class="font-medium text-primary text-sm cursor-pointer hover:underline">
-                                    Criar conta
+                                <span class="text-muted-color text-sm">Já possui uma conta? </span>
+                                <a routerLink="/login" class="font-medium text-primary text-sm cursor-pointer hover:underline">
+                                    Faça login
                                 </a>
                             </div>
                         </div>
@@ -59,3 +92,4 @@
         </div>
     </div>
 </div>
+
