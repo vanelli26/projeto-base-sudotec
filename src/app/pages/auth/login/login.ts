@@ -8,7 +8,7 @@ import { PasswordModule } from 'primeng/password';
 import { RippleModule } from 'primeng/ripple';
 import { MessageService } from 'primeng/api';
 import { Toast } from 'primeng/toast';
-import { LoginService } from '@/pages/auth/login/login-service';
+import { LoginService } from '@/services/login-service';
 import { AuthModel } from '@/models/auth.model';
 import { AuthService } from '@/services/auth.service';
 

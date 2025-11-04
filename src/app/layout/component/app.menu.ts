@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { AuthService } from '@/services/auth.service';
 
 @Component({
     selector: 'app-menu',
@@ -16,9 +17,12 @@ import { AppMenuitem } from './app.menuitem';
     </ul> `
 })
 export class AppMenu {
+    authService = inject(AuthService);
     model: MenuItem[] = [];
 
     ngOnInit() {
+        const isAdmin = this.authService.isAdmin();
+
         this.model = [
             {
                 label: 'Home',
@@ -29,6 +33,7 @@ export class AppMenu {
                 icon: 'pi pi-fw pi-briefcase',
                 routerLink: ['/pages'],
                 items: [
+                    ...(isAdmin ? [{ label: 'Usuários', icon: 'pi pi-fw pi-users', routerLink: ['/home/users'] }] : []),
                     {
                         label: 'Not Found',
                         icon: 'pi pi-fw pi-exclamation-circle',
