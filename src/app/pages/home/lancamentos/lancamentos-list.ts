@@ -35,12 +35,24 @@ export class LancamentosList implements OnInit {
     confirmationService = inject(ConfirmationService);
 
     lancamentos: Lancamento[] = [];
+    lancamentosFiltrados: Lancamento[] = [];
     categorias: Category[] = [];
     lancamentoDialog: boolean = false;
     lancamento: Lancamento = {} as Lancamento;
     submitted: boolean = false;
     loading: boolean = false;
     isEditMode: boolean = false;
+
+    // Controle de navegação por mês/ano
+    mesAtual: number = new Date().getMonth();
+    anoAtual: number = new Date().getFullYear();
+    mesSelecionado: number = this.mesAtual;
+    anoSelecionado: number = this.anoAtual;
+
+    mesesNomes: string[] = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
 
     ngOnInit() {
         this.loadLancamentos();
@@ -67,6 +79,7 @@ export class LancamentosList implements OnInit {
         this.lancamentoService.getLancamentos().subscribe({
             next: (lancamentos) => {
                 this.lancamentos = lancamentos;
+                this.filtrarLancamentosPorMesAno();
                 this.loading = false;
             },
             error: () => {
@@ -78,6 +91,48 @@ export class LancamentosList implements OnInit {
                 this.loading = false;
             }
         });
+    }
+
+    filtrarLancamentosPorMesAno() {
+        this.lancamentosFiltrados = this.lancamentos.filter(lancamento => {
+            const dataLancamento = new Date(lancamento.data);
+            return dataLancamento.getMonth() === this.mesSelecionado &&
+                   dataLancamento.getFullYear() === this.anoSelecionado;
+        });
+    }
+
+    mesAnterior() {
+        if (this.mesSelecionado === 0) {
+            this.mesSelecionado = 11;
+            this.anoSelecionado--;
+        } else {
+            this.mesSelecionado--;
+        }
+        this.filtrarLancamentosPorMesAno();
+    }
+
+    proximoMes() {
+        if (this.mesSelecionado === 11) {
+            this.mesSelecionado = 0;
+            this.anoSelecionado++;
+        } else {
+            this.mesSelecionado++;
+        }
+        this.filtrarLancamentosPorMesAno();
+    }
+
+    voltarMesAtual() {
+        this.mesSelecionado = this.mesAtual;
+        this.anoSelecionado = this.anoAtual;
+        this.filtrarLancamentosPorMesAno();
+    }
+
+    get mesAnoSelecionado(): string {
+        return `${this.mesesNomes[this.mesSelecionado]} ${this.anoSelecionado}`;
+    }
+
+    get isNoPeriodoAtual(): boolean {
+        return this.mesSelecionado === this.mesAtual && this.anoSelecionado === this.anoAtual;
     }
 
     openNew() {
