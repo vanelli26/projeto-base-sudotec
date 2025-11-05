@@ -10,27 +10,32 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DatePicker } from 'primeng/datepicker';
 import { RadioButton } from 'primeng/radiobutton';
+import { Select } from 'primeng/select';
 import { Toolbar } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LancamentoService } from '@/services/lancamento.service';
+import { CategoryService } from '@/services/category.service';
 import { Lancamento } from '@/models/lancamento.model';
+import { Category } from '@/models/category.model';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 
 @Component({
     selector: 'app-lancamentos-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, TableModule, ButtonModule, Dialog, Toast, ConfirmDialog, InputTextModule, InputNumberModule, DatePicker, RadioButton, Toolbar, TooltipModule, IconField, InputIcon],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, Dialog, Toast, ConfirmDialog, InputTextModule, InputNumberModule, DatePicker, RadioButton, Select, Toolbar, TooltipModule, IconField, InputIcon],
     templateUrl: './lancamentos-list.html',
     providers: [MessageService, ConfirmationService]
 })
 export class LancamentosList implements OnInit {
     lancamentoService = inject(LancamentoService);
+    categoryService = inject(CategoryService);
     messageService = inject(MessageService);
     confirmationService = inject(ConfirmationService);
 
     lancamentos: Lancamento[] = [];
+    categorias: Category[] = [];
     lancamentoDialog: boolean = false;
     lancamento: Lancamento = {} as Lancamento;
     submitted: boolean = false;
@@ -39,6 +44,22 @@ export class LancamentosList implements OnInit {
 
     ngOnInit() {
         this.loadLancamentos();
+        this.loadCategorias();
+    }
+
+    loadCategorias() {
+        this.categoryService.getCategories().subscribe({
+            next: (categorias) => {
+                this.categorias = categorias;
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Erro',
+                    detail: 'Erro ao carregar categorias'
+                });
+            }
+        });
     }
 
     loadLancamentos() {
@@ -173,5 +194,11 @@ export class LancamentosList implements OnInit {
     formatDate(value: Date | string): string {
         const date = typeof value === 'string' ? new Date(value) : value;
         return new Intl.DateTimeFormat('pt-BR').format(date);
+    }
+
+    getCategoriaNome(categoriaId?: number): string {
+        if (!categoriaId) return '-';
+        const categoria = this.categorias.find(c => c.id === categoriaId);
+        return categoria?.nome || '-';
     }
 }

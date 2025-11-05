@@ -60,27 +60,31 @@
 
         <ng-template #header>
             <tr>
-                <th pSortableColumn="id" style="width: 8%">
+                <th pSortableColumn="id" style="width: 7%">
                     ID
                     <p-sortIcon field="id" />
                 </th>
-                <th pSortableColumn="data" style="width: 12%">
+                <th pSortableColumn="data" style="width: 10%">
                     Data
                     <p-sortIcon field="data" />
                 </th>
-                <th pSortableColumn="tipo" style="width: 12%">
+                <th pSortableColumn="tipo" style="width: 10%">
                     Tipo
                     <p-sortIcon field="tipo" />
                 </th>
-                <th pSortableColumn="descricao" style="width: 38%">
+                <th pSortableColumn="categoriaId" style="width: 15%">
+                    Categoria
+                    <p-sortIcon field="categoriaId" />
+                </th>
+                <th pSortableColumn="descricao" style="width: 33%">
                     Descrição
                     <p-sortIcon field="descricao" />
                 </th>
-                <th pSortableColumn="valor" style="width: 15%">
+                <th pSortableColumn="valor" style="width: 12%">
                     Valor
                     <p-sortIcon field="valor" />
                 </th>
-                <th style="width: 15%" class="text-center">Ações</th>
+                <th style="width: 13%" class="text-center">Ações</th>
             </tr>
         </ng-template>
 
@@ -107,6 +111,12 @@
                             Despesa
                         </span>
                     }
+                </td>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-tag text-lg"></i>
+                        <span>{{ getCategoriaNome(lancamento.categoriaId) }}</span>
+                    </div>
                 </td>
                 <td>
                     <div class="flex items-center gap-2">
@@ -147,7 +157,7 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="6" class="text-center py-8">
+                <td colspan="7" class="text-center py-8">
                     <div class="flex flex-col items-center gap-3">
                         <i class="pi pi-inbox text-4xl text-muted-color"></i>
                         <p class="text-muted-color text-lg">Nenhum lançamento encontrado</p>
@@ -208,6 +218,23 @@
                 @if (submitted && !lancamento.tipo) {
                     <small class="text-red-500">O tipo é obrigatório.</small>
                 }
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="categoria" class="font-semibold">
+                    Categoria
+                </label>
+                <p-select
+                    id="categoria"
+                    [(ngModel)]="lancamento.categoriaId"
+                    [options]="categorias"
+                    optionLabel="nome"
+                    optionValue="id"
+                    placeholder="Selecione uma categoria"
+                    [showClear]="true"
+                    appendTo="body"
+                    styleClass="w-full">
+                </p-select>
             </div>
 
             <div class="flex flex-col gap-2">

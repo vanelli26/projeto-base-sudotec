@@ -4,5 +4,6 @@ export interface Lancamento {
     valor: number;
     data: Date | string;
     tipo: 'RECEITA' | 'DESPESA';
+    categoriaId?: number;
 }
 
