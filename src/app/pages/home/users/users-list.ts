@@ -9,11 +9,12 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { UserService } from '@/services/user.service';
 import { AuthService } from '@/services/auth.service';
 import { UserData } from '@/models/auth.model';
+import { Toolbar } from 'primeng/toolbar';
 
 @Component({
     selector: 'app-users-list',
     standalone: true,
-    imports: [CommonModule, TableModule, ButtonModule, TagModule, Toast, ConfirmDialog],
+    imports: [CommonModule, TableModule, ButtonModule, TagModule, Toast, ConfirmDialog, Toolbar],
     templateUrl: './users-list.html',
     providers: [MessageService, ConfirmationService]
 })
