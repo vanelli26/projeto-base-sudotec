@@ -12,11 +12,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CategoryService } from '@/services/category.service';
 import { Category } from '@/models/category.model';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 
 @Component({
     selector: 'app-categories-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, TableModule, ButtonModule, Dialog, Toast, ConfirmDialog, InputTextModule, Toolbar, TooltipModule],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, Dialog, Toast, ConfirmDialog, InputTextModule, Toolbar, TooltipModule, IconField, InputIcon],
     templateUrl: './categories-list.html',
     providers: [MessageService, ConfirmationService]
 })
