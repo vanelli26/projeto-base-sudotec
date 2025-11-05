@@ -5,5 +5,8 @@ export interface Lancamento {
     data: Date | string;
     tipo: 'RECEITA' | 'DESPESA';
     categoriaId?: number;
+    numeroParcelas?: number;
+    parcelaAtual?: number;
+    lancamentoPaiId?: number;
 }
 

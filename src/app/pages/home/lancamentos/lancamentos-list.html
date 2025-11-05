@@ -342,6 +342,47 @@
                     <small class="text-red-500">O valor é obrigatório.</small>
                 }
             </div>
+
+            @if (!isEditMode) {
+                <div class="flex flex-col gap-3 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+                    <div class="flex items-center gap-2">
+                        <p-checkbox
+                            [(ngModel)]="isParcelado"
+                            [binary]="true"
+                            inputId="parcelado">
+                        </p-checkbox>
+                        <label for="parcelado" class="cursor-pointer font-semibold">
+                            Parcelar lançamento
+                        </label>
+                    </div>
+
+                    @if (isParcelado) {
+                        <div class="flex flex-col gap-2">
+                            <label for="numeroParcelas" class="font-semibold text-sm">
+                                Número de Parcelas
+                            </label>
+                            <p-inputNumber
+                                id="numeroParcelas"
+                                [(ngModel)]="numeroParcelas"
+                                [min]="2"
+                                [max]="60"
+                                [showButtons]="true"
+                                buttonLayout="horizontal"
+                                incrementButtonIcon="pi pi-plus"
+                                decrementButtonIcon="pi pi-minus"
+                                placeholder="Quantidade de parcelas"
+                                styleClass="w-full">
+                            </p-inputNumber>
+                            <small class="text-muted-color">
+                                Valor de cada parcela: <strong>{{ formatCurrency(valorParcela) }}</strong>
+                            </small>
+                            <small class="text-muted-color">
+                                Serão criados {{ numeroParcelas }} lançamentos com intervalo de 30 dias
+                            </small>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </ng-template>
 

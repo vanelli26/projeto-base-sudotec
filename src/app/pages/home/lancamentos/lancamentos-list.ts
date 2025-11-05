@@ -11,6 +11,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DatePicker } from 'primeng/datepicker';
 import { RadioButton } from 'primeng/radiobutton';
 import { Select } from 'primeng/select';
+import { Checkbox } from 'primeng/checkbox';
 import { Toolbar } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -24,7 +25,7 @@ import { InputIcon } from 'primeng/inputicon';
 @Component({
     selector: 'app-lancamentos-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, TableModule, ButtonModule, Dialog, Toast, ConfirmDialog, InputTextModule, InputNumberModule, DatePicker, RadioButton, Select, Toolbar, TooltipModule, IconField, InputIcon],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, Dialog, Toast, ConfirmDialog, InputTextModule, InputNumberModule, DatePicker, RadioButton, Select, Checkbox, Toolbar, TooltipModule, IconField, InputIcon],
     templateUrl: './lancamentos-list.html',
     providers: [MessageService, ConfirmationService]
 })
@@ -42,6 +43,8 @@ export class LancamentosList implements OnInit {
     submitted: boolean = false;
     loading: boolean = false;
     isEditMode: boolean = false;
+    isParcelado: boolean = false;
+    numeroParcelas: number = 1;
 
     // Controle de navegação por mês/ano
     mesAtual: number = new Date().getMonth();
@@ -139,6 +142,8 @@ export class LancamentosList implements OnInit {
         this.lancamento = { valor: 0, data: new Date(), tipo: 'DESPESA' } as Lancamento;
         this.submitted = false;
         this.isEditMode = false;
+        this.isParcelado = false;
+        this.numeroParcelas = 1;
         this.lancamentoDialog = true;
     }
 
@@ -148,6 +153,8 @@ export class LancamentosList implements OnInit {
             data: lancamento.data ? new Date(lancamento.data) : new Date()
         };
         this.isEditMode = true;
+        this.isParcelado = false;
+        this.numeroParcelas = 1;
         this.lancamentoDialog = true;
     }
 
@@ -183,25 +190,29 @@ export class LancamentosList implements OnInit {
                 });
             } else {
                 // Create
-                this.lancamentoService.createLancamento(this.lancamento).subscribe({
-                    next: () => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Sucesso',
-                            detail: 'Lançamento criado com sucesso'
-                        });
-                        this.loadLancamentos();
-                        this.lancamentoDialog = false;
-                        this.lancamento = {} as Lancamento;
-                    },
-                    error: () => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Erro',
-                            detail: 'Erro ao criar lançamento'
-                        });
-                    }
-                });
+                if (this.isParcelado && this.numeroParcelas > 1) {
+                    this.criarLancamentosParcelados();
+                } else {
+                    this.lancamentoService.createLancamento(this.lancamento).subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Sucesso',
+                                detail: 'Lançamento criado com sucesso'
+                            });
+                            this.loadLancamentos();
+                            this.lancamentoDialog = false;
+                            this.lancamento = {} as Lancamento;
+                        },
+                        error: () => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Erro',
+                                detail: 'Erro ao criar lançamento'
+                            });
+                        }
+                    });
+                }
             }
         }
     }
@@ -255,5 +266,72 @@ export class LancamentosList implements OnInit {
         if (!categoriaId) return '-';
         const categoria = this.categorias.find(c => c.id === categoriaId);
         return categoria?.nome || '-';
+    }
+
+    criarLancamentosParcelados() {
+        const valorParcela = this.lancamento.valor / this.numeroParcelas;
+        const dataBase = new Date(this.lancamento.data);
+        let parcelasRestantes = this.numeroParcelas;
+        let parcelasErro = 0;
+
+        for (let i = 0; i < this.numeroParcelas; i++) {
+            const dataParcela = new Date(dataBase);
+            dataParcela.setDate(dataParcela.getDate() + (i * 30));
+
+            const parcela: Lancamento = {
+                ...this.lancamento,
+                valor: valorParcela,
+                data: dataParcela,
+                descricao: `${this.lancamento.descricao} (${i + 1}/${this.numeroParcelas})`,
+                numeroParcelas: this.numeroParcelas,
+                parcelaAtual: i + 1
+            };
+
+            this.lancamentoService.createLancamento(parcela).subscribe({
+                next: () => {
+                    parcelasRestantes--;
+                    if (parcelasRestantes === 0 && parcelasErro === 0) {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Sucesso',
+                            detail: `${this.numeroParcelas} parcelas criadas com sucesso`
+                        });
+                        this.loadLancamentos();
+                        this.lancamentoDialog = false;
+                        this.lancamento = {} as Lancamento;
+                    } else if (parcelasRestantes === 0 && parcelasErro > 0) {
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Parcialmente Concluído',
+                            detail: `${this.numeroParcelas - parcelasErro} de ${this.numeroParcelas} parcelas criadas`
+                        });
+                        this.loadLancamentos();
+                        this.lancamentoDialog = false;
+                        this.lancamento = {} as Lancamento;
+                    }
+                },
+                error: () => {
+                    parcelasRestantes--;
+                    parcelasErro++;
+                    if (parcelasRestantes === 0) {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Erro',
+                            detail: `Erro ao criar parcelas. ${parcelasErro} parcela(s) falharam`
+                        });
+                        if (parcelasErro < this.numeroParcelas) {
+                            this.loadLancamentos();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    get valorParcela(): number {
+        if (!this.isParcelado || this.numeroParcelas <= 1) {
+            return this.lancamento.valor || 0;
+        }
+        return (this.lancamento.valor || 0) / this.numeroParcelas;
     }
 }
