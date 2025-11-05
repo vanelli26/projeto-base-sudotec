@@ -34,6 +34,7 @@ export class AppMenu {
                 routerLink: ['/pages'],
                 items: [
                     { label: 'Categorias', icon: 'pi pi-fw pi-tags', routerLink: ['/home/categories'] },
+                    { label: 'Contas', icon: 'pi pi-fw pi-wallet', routerLink: ['/home/contas'] },
                     ...(isAdmin ? [{ label: 'Usuários', icon: 'pi pi-fw pi-users', routerLink: ['/home/users'] }] : []),
                     {
                         label: 'Not Found',
