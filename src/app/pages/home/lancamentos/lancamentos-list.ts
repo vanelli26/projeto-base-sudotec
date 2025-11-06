@@ -237,11 +237,16 @@ export class LancamentosList implements OnInit {
                 if (this.isParcelado && this.numeroParcelas > 1) {
                     this.criarLancamentosParcelados();
                 } else {
-                    this.lancamentoService.createLancamento(this.lancamento).subscribe({
+                    // Guarda uma cópia do lançamento antes de salvar
+                    const lancamentoParaSalvar = { ...this.lancamento };
+
+                    this.lancamentoService.createLancamento(lancamentoParaSalvar).subscribe({
                         next: () => {
                             // Atualiza o saldo se o lançamento está efetivado e tem conta
-                            if (this.lancamento.contaId) {
-                                this.atualizarSaldoContaAoSalvar();
+                            // Usa a cópia guardada ao invés de this.lancamento
+                            if (lancamentoParaSalvar.contaId && lancamentoParaSalvar.efetivado) {
+                                console.log('Atualizando saldo da conta após criar lançamento efetivado');
+                                this.atualizarSaldoContaParaLancamento(lancamentoParaSalvar);
                             }
 
                             this.messageService.add({
@@ -490,39 +495,59 @@ export class LancamentosList implements OnInit {
     }
 
     atualizarSaldoContaAoSalvar(lancamentoOriginal?: Lancamento) {
+        console.log('=== atualizarSaldoContaAoSalvar ===');
+        console.log('Lançamento atual:', JSON.stringify(this.lancamento, null, 2));
+        console.log('Lançamento original:', lancamentoOriginal ? JSON.stringify(lancamentoOriginal, null, 2) : 'null');
+        console.log('Campo efetivado:', this.lancamento.efetivado, 'Tipo:', typeof this.lancamento.efetivado);
+
         // Se não tem conta, não faz nada
         if (!this.lancamento.contaId) {
+            console.log('Sem conta associada, pulando atualização');
             return;
         }
 
         this.contaService.getContaById(this.lancamento.contaId).subscribe({
             next: (conta) => {
+                console.log('Conta atual:', JSON.stringify(conta, null, 2));
                 let novoSaldo = conta.saldo;
+                console.log('Saldo inicial:', novoSaldo);
 
                 // Se está editando, primeiro reverte o valor anterior
                 if (lancamentoOriginal && lancamentoOriginal.efetivado && lancamentoOriginal.contaId === this.lancamento.contaId) {
+                    console.log('Revertendo lançamento original efetivado');
                     if (lancamentoOriginal.tipo === 'RECEITA') {
                         novoSaldo -= lancamentoOriginal.valor;
+                        console.log(`Removendo RECEITA: ${novoSaldo} = ${conta.saldo} - ${lancamentoOriginal.valor}`);
                     } else {
                         novoSaldo += lancamentoOriginal.valor;
+                        console.log(`Devolvendo DESPESA: ${novoSaldo} = ${conta.saldo} + ${lancamentoOriginal.valor}`);
                     }
                 }
 
                 // Aplica o novo valor se estiver efetivado
                 if (this.lancamento.efetivado) {
+                    console.log('Aplicando novo lançamento efetivado');
                     if (this.lancamento.tipo === 'RECEITA') {
                         novoSaldo += this.lancamento.valor;
+                        console.log(`Adicionando RECEITA: ${novoSaldo} = saldo anterior + ${this.lancamento.valor}`);
                     } else {
                         novoSaldo -= this.lancamento.valor;
+                        console.log(`Subtraindo DESPESA: ${novoSaldo} = saldo anterior - ${this.lancamento.valor}`);
                     }
+                } else {
+                    console.log('Lançamento NÃO está efetivado, não aplicando ao saldo');
                 }
 
+                console.log('Saldo final calculado:', novoSaldo);
                 const contaAtualizada = { ...conta, saldo: novoSaldo };
+
                 this.contaService.updateConta(conta.id!, contaAtualizada).subscribe({
                     next: () => {
+                        console.log('Saldo da conta atualizado com sucesso!');
                         this.loadContas();
                     },
                     error: () => {
+                        console.error('Erro ao atualizar saldo da conta');
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Erro',
@@ -530,6 +555,77 @@ export class LancamentosList implements OnInit {
                         });
                     }
                 });
+            },
+            error: (err) => {
+                console.error('Erro ao buscar conta:', err);
+            }
+        });
+    }
+
+    atualizarSaldoContaParaLancamento(lancamento: Lancamento, lancamentoOriginal?: Lancamento) {
+        console.log('=== atualizarSaldoContaParaLancamento ===');
+        console.log('Lançamento:', JSON.stringify(lancamento, null, 2));
+        console.log('Lançamento original:', lancamentoOriginal ? JSON.stringify(lancamentoOriginal, null, 2) : 'null');
+        console.log('Campo efetivado:', lancamento.efetivado, 'Tipo:', typeof lancamento.efetivado);
+
+        // Se não tem conta, não faz nada
+        if (!lancamento.contaId) {
+            console.log('Sem conta associada, pulando atualização');
+            return;
+        }
+
+        this.contaService.getContaById(lancamento.contaId).subscribe({
+            next: (conta) => {
+                console.log('Conta atual:', JSON.stringify(conta, null, 2));
+                let novoSaldo = conta.saldo;
+                console.log('Saldo inicial:', novoSaldo);
+
+                // Se está editando, primeiro reverte o valor anterior
+                if (lancamentoOriginal && lancamentoOriginal.efetivado && lancamentoOriginal.contaId === lancamento.contaId) {
+                    console.log('Revertendo lançamento original efetivado');
+                    if (lancamentoOriginal.tipo === 'RECEITA') {
+                        novoSaldo -= lancamentoOriginal.valor;
+                        console.log(`Removendo RECEITA: ${novoSaldo} = ${conta.saldo} - ${lancamentoOriginal.valor}`);
+                    } else {
+                        novoSaldo += lancamentoOriginal.valor;
+                        console.log(`Devolvendo DESPESA: ${novoSaldo} = ${conta.saldo} + ${lancamentoOriginal.valor}`);
+                    }
+                }
+
+                // Aplica o novo valor se estiver efetivado
+                if (lancamento.efetivado) {
+                    console.log('Aplicando novo lançamento efetivado');
+                    if (lancamento.tipo === 'RECEITA') {
+                        novoSaldo += lancamento.valor;
+                        console.log(`Adicionando RECEITA: ${novoSaldo} = saldo anterior + ${lancamento.valor}`);
+                    } else {
+                        novoSaldo -= lancamento.valor;
+                        console.log(`Subtraindo DESPESA: ${novoSaldo} = saldo anterior - ${lancamento.valor}`);
+                    }
+                } else {
+                    console.log('Lançamento NÃO está efetivado, não aplicando ao saldo');
+                }
+
+                console.log('Saldo final calculado:', novoSaldo);
+                const contaAtualizada = { ...conta, saldo: novoSaldo };
+
+                this.contaService.updateConta(conta.id!, contaAtualizada).subscribe({
+                    next: () => {
+                        console.log('Saldo da conta atualizado com sucesso!');
+                        this.loadContas();
+                    },
+                    error: () => {
+                        console.error('Erro ao atualizar saldo da conta');
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Erro',
+                            detail: 'Erro ao atualizar saldo da conta'
+                        });
+                    }
+                });
+            },
+            error: (err) => {
+                console.error('Erro ao buscar conta:', err);
             }
         });
     }
