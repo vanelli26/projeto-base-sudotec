@@ -56,10 +56,7 @@ export class LancamentosList implements OnInit {
     mesSelecionado: number = this.mesAtual;
     anoSelecionado: number = this.anoAtual;
 
-    mesesNomes: string[] = [
-        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
+    mesesNomes: string[] = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
     ngOnInit() {
         this.loadLancamentos();
@@ -117,10 +114,9 @@ export class LancamentosList implements OnInit {
     }
 
     filtrarLancamentosPorMesAno() {
-        this.lancamentosFiltrados = this.lancamentos.filter(lancamento => {
+        this.lancamentosFiltrados = this.lancamentos.filter((lancamento) => {
             const dataLancamento = new Date(lancamento.data);
-            return dataLancamento.getMonth() === this.mesSelecionado &&
-                   dataLancamento.getFullYear() === this.anoSelecionado;
+            return dataLancamento.getMonth() === this.mesSelecionado && dataLancamento.getFullYear() === this.anoSelecionado;
         });
     }
 
@@ -159,7 +155,7 @@ export class LancamentosList implements OnInit {
     }
 
     openNew() {
-        this.lancamento = { valor: 0, data: new Date(), tipo: 'DESPESA' } as Lancamento;
+        this.lancamento = { valor: 0, data: new Date(), tipo: 'DESPESA', efetivado: false } as Lancamento;
         this.submitted = false;
         this.isEditMode = false;
         this.isParcelado = false;
@@ -185,36 +181,69 @@ export class LancamentosList implements OnInit {
 
     saveLancamento() {
         this.submitted = true;
+        console.log('Dados do lançamento antes de salvar:', JSON.stringify(this.lancamento, null, 2));
 
         if (this.lancamento.descricao?.trim() && this.lancamento.valor !== undefined && this.lancamento.data && this.lancamento.tipo) {
+            // Garante que efetivado seja sempre um booleano
+            if (this.lancamento.efetivado === undefined || this.lancamento.efetivado === null) {
+                this.lancamento.efetivado = false;
+            }
+
+            // Log para debug
+            console.log('Salvando lançamento:', JSON.stringify(this.lancamento, null, 2));
+            console.log('Campo efetivado:', this.lancamento.efetivado, 'Tipo:', typeof this.lancamento.efetivado);
+
             if (this.lancamento.id) {
                 // Update
-                this.lancamentoService.updateLancamento(this.lancamento.id, this.lancamento).subscribe({
-                    next: () => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Sucesso',
-                            detail: 'Lançamento atualizado com sucesso'
-                        });
-                        this.loadLancamentos();
-                        this.lancamentoDialog = false;
-                        this.lancamento = {} as Lancamento;
-                    },
-                    error: () => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Erro',
-                            detail: 'Erro ao atualizar lançamento'
+                // Guarda o lançamento original para comparar mudanças no saldo
+                const lancamentoOriginalId = this.lancamento.id;
+                this.lancamentoService.getLancamentoById(lancamentoOriginalId).subscribe({
+                    next: (lancamentoOriginal) => {
+                        this.lancamentoService.updateLancamento(lancamentoOriginalId, this.lancamento).subscribe({
+                            next: () => {
+                                // Atualiza o saldo se necessário
+                                if (
+                                    this.lancamento.contaId &&
+                                    (lancamentoOriginal.efetivado !== this.lancamento.efetivado ||
+                                        lancamentoOriginal.valor !== this.lancamento.valor ||
+                                        lancamentoOriginal.contaId !== this.lancamento.contaId ||
+                                        lancamentoOriginal.tipo !== this.lancamento.tipo)
+                                ) {
+                                    this.atualizarSaldoContaAoSalvar(lancamentoOriginal);
+                                }
+
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Sucesso',
+                                    detail: 'Lançamento atualizado com sucesso'
+                                });
+                                this.loadLancamentos();
+                                this.lancamentoDialog = false;
+                                this.lancamento = {} as Lancamento;
+                            },
+                            error: () => {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Erro',
+                                    detail: 'Erro ao atualizar lançamento'
+                                });
+                            }
                         });
                     }
                 });
             } else {
                 // Create
+                console.log('Criando novo lançamento');
                 if (this.isParcelado && this.numeroParcelas > 1) {
                     this.criarLancamentosParcelados();
                 } else {
                     this.lancamentoService.createLancamento(this.lancamento).subscribe({
                         next: () => {
+                            // Atualiza o saldo se o lançamento está efetivado e tem conta
+                            if (this.lancamento.contaId) {
+                                this.atualizarSaldoContaAoSalvar();
+                            }
+
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Sucesso',
@@ -284,13 +313,13 @@ export class LancamentosList implements OnInit {
 
     getCategoriaNome(categoriaId?: number): string {
         if (!categoriaId) return '-';
-        const categoria = this.categorias.find(c => c.id === categoriaId);
+        const categoria = this.categorias.find((c) => c.id === categoriaId);
         return categoria?.nome || '-';
     }
 
     getContaNome(contaId?: number): string {
         if (!contaId) return '-';
-        const conta = this.contas.find(c => c.id === contaId);
+        const conta = this.contas.find((c) => c.id === contaId);
         return conta?.descricao || '-';
     }
 
@@ -302,7 +331,7 @@ export class LancamentosList implements OnInit {
 
         for (let i = 0; i < this.numeroParcelas; i++) {
             const dataParcela = new Date(dataBase);
-            dataParcela.setDate(dataParcela.getDate() + (i * 30));
+            dataParcela.setDate(dataParcela.getDate() + i * 30);
 
             const parcela: Lancamento = {
                 ...this.lancamento,
@@ -359,5 +388,149 @@ export class LancamentosList implements OnInit {
             return this.lancamento.valor || 0;
         }
         return (this.lancamento.valor || 0) / this.numeroParcelas;
+    }
+
+    toggleEfetivado(lancamento: Lancamento) {
+        // Inverte o valor manualmente já que não temos mais ngModel
+        lancamento.efetivado = !lancamento.efetivado;
+        const novoStatus = lancamento.efetivado;
+        const lancamentoAtualizado = { ...lancamento, efetivado: novoStatus };
+
+        console.log('Toggling efetivado for lancamento:', lancamento.id);
+        console.log('Novo status efetivado:', novoStatus);
+
+        // Se tem conta associada, atualiza o saldo
+        if (lancamento.contaId) {
+            this.contaService.getContaById(lancamento.contaId).subscribe({
+                next: (conta) => {
+                    let novoSaldo = conta.saldo;
+
+                    if (novoStatus) {
+                        // Está efetivando o lançamento
+                        if (lancamento.tipo === 'RECEITA') {
+                            novoSaldo += lancamento.valor;
+                        } else {
+                            novoSaldo -= lancamento.valor;
+                        }
+                    } else {
+                        // Está desefetivando o lançamento
+                        if (lancamento.tipo === 'RECEITA') {
+                            novoSaldo -= lancamento.valor;
+                        } else {
+                            novoSaldo += lancamento.valor;
+                        }
+                    }
+
+                    const contaAtualizada = { ...conta, saldo: novoSaldo };
+
+                    // Atualiza a conta
+                    this.contaService.updateConta(conta.id!, contaAtualizada).subscribe({
+                        next: () => {
+                            // Atualiza o lançamento
+                            this.lancamentoService.updateLancamento(lancamento.id!, lancamentoAtualizado).subscribe({
+                                next: () => {
+                                    this.messageService.add({
+                                        severity: 'success',
+                                        summary: 'Sucesso',
+                                        detail: novoStatus ? 'Lançamento efetivado com sucesso' : 'Lançamento desefetivado com sucesso'
+                                    });
+                                    this.loadLancamentos();
+                                    this.loadContas(); // Atualiza a lista de contas
+                                },
+                                error: () => {
+                                    // Reverte em caso de erro
+                                    lancamento.efetivado = !lancamento.efetivado;
+                                    this.messageService.add({
+                                        severity: 'error',
+                                        summary: 'Erro',
+                                        detail: 'Erro ao atualizar status do lançamento'
+                                    });
+                                }
+                            });
+                        },
+                        error: () => {
+                            // Reverte em caso de erro
+                            lancamento.efetivado = !lancamento.efetivado;
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Erro',
+                                detail: 'Erro ao atualizar saldo da conta'
+                            });
+                        }
+                    });
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Erro',
+                        detail: 'Erro ao buscar informações da conta'
+                    });
+                }
+            });
+        } else {
+            // Se não tem conta, apenas atualiza o status do lançamento
+            this.lancamentoService.updateLancamento(lancamento.id!, lancamentoAtualizado).subscribe({
+                next: () => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Sucesso',
+                        detail: novoStatus ? 'Lançamento efetivado com sucesso' : 'Lançamento desefetivado com sucesso'
+                    });
+                    this.loadLancamentos();
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Erro',
+                        detail: 'Erro ao atualizar status do lançamento'
+                    });
+                }
+            });
+        }
+    }
+
+    atualizarSaldoContaAoSalvar(lancamentoOriginal?: Lancamento) {
+        // Se não tem conta, não faz nada
+        if (!this.lancamento.contaId) {
+            return;
+        }
+
+        this.contaService.getContaById(this.lancamento.contaId).subscribe({
+            next: (conta) => {
+                let novoSaldo = conta.saldo;
+
+                // Se está editando, primeiro reverte o valor anterior
+                if (lancamentoOriginal && lancamentoOriginal.efetivado && lancamentoOriginal.contaId === this.lancamento.contaId) {
+                    if (lancamentoOriginal.tipo === 'RECEITA') {
+                        novoSaldo -= lancamentoOriginal.valor;
+                    } else {
+                        novoSaldo += lancamentoOriginal.valor;
+                    }
+                }
+
+                // Aplica o novo valor se estiver efetivado
+                if (this.lancamento.efetivado) {
+                    if (this.lancamento.tipo === 'RECEITA') {
+                        novoSaldo += this.lancamento.valor;
+                    } else {
+                        novoSaldo -= this.lancamento.valor;
+                    }
+                }
+
+                const contaAtualizada = { ...conta, saldo: novoSaldo };
+                this.contaService.updateConta(conta.id!, contaAtualizada).subscribe({
+                    next: () => {
+                        this.loadContas();
+                    },
+                    error: () => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Erro',
+                            detail: 'Erro ao atualizar saldo da conta'
+                        });
+                    }
+                });
+            }
+        });
     }
 }

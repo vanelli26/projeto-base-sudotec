@@ -111,19 +111,19 @@
 
         <ng-template #header>
             <tr>
-                <th pSortableColumn="data" style="width: 9%">
+                <th pSortableColumn="data" style="width: 8%">
                     Data
                     <p-sortIcon field="data" />
                 </th>
-                <th pSortableColumn="contaId" style="width: 20%">
+                <th pSortableColumn="contaId" style="width: 17%">
                     Conta
                     <p-sortIcon field="contaId" />
                 </th>
-                <th pSortableColumn="categoriaId" style="width: 20%">
+                <th pSortableColumn="categoriaId" style="width: 17%">
                     Categoria
                     <p-sortIcon field="categoriaId" />
                 </th>
-                <th pSortableColumn="descricao" style="width: 30%">
+                <th pSortableColumn="descricao" style="width: 26%">
                     Descrição
                     <p-sortIcon field="descricao" />
                 </th>
@@ -131,6 +131,7 @@
                     Valor
                     <p-sortIcon field="valor" />
                 </th>
+                <th style="width: 11%" class="text-center">Status</th>
                 <th style="width: 11%" class="text-center">Ações</th>
             </tr>
         </ng-template>
@@ -165,6 +166,19 @@
                     <span [class]="lancamento.tipo === 'RECEITA' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
                         {{ formatCurrency(lancamento.valor) }}
                     </span>
+                </td>
+                <td>
+                    <div class="flex justify-center">
+                        <p-button
+                            [label]="lancamento.efetivado ? 'Efetivado' : 'Pendente'"
+                            [icon]="lancamento.efetivado ? 'pi pi-check-circle' : 'pi pi-clock'"
+                            [severity]="lancamento.efetivado ? 'success' : 'info'"
+                            size="small"
+                            (onClick)="toggleEfetivado(lancamento)"
+                            pTooltip="Clique para alternar o status"
+                            tooltipPosition="top">
+                        </p-button>
+                    </div>
                 </td>
                 <td>
                     <div class="flex justify-center gap-2">
@@ -344,6 +358,26 @@
                 @if (submitted && lancamento.valor === undefined) {
                     <small class="text-red-500">O valor é obrigatório.</small>
                 }
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="efetivado" class="font-semibold">
+                    Status do Lançamento
+                </label>
+                <p-button
+                    [label]="lancamento.efetivado ? 'Efetivado' : 'Pendente'"
+                    [icon]="lancamento.efetivado ? 'pi pi-check-circle' : 'pi pi-clock'"
+                    [severity]="lancamento.efetivado ? 'success' : 'info'"
+                    styleClass="w-full"
+                    (onClick)="lancamento.efetivado = !lancamento.efetivado">
+                </p-button>
+                <small class="text-muted-color">
+                    @if (lancamento.efetivado) {
+                        <i class="pi pi-info-circle"></i> O saldo da conta será atualizado ao salvar
+                    } @else {
+                        <i class="pi pi-info-circle"></i> Marque como efetivado para atualizar o saldo da conta
+                    }
+                </small>
             </div>
 
             @if (!isEditMode) {

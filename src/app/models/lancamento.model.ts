@@ -9,5 +9,6 @@ export interface Lancamento {
     numeroParcelas?: number;
     parcelaAtual?: number;
     lancamentoPaiId?: number;
+    efetivado: boolean;
 }
 
