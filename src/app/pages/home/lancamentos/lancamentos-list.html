@@ -111,23 +111,15 @@
 
         <ng-template #header>
             <tr>
-                <th pSortableColumn="id" style="width: 6%">
-                    ID
-                    <p-sortIcon field="id" />
-                </th>
                 <th pSortableColumn="data" style="width: 9%">
                     Data
                     <p-sortIcon field="data" />
                 </th>
-                <th pSortableColumn="tipo" style="width: 9%">
-                    Tipo
-                    <p-sortIcon field="tipo" />
-                </th>
-                <th pSortableColumn="contaId" style="width: 12%">
+                <th pSortableColumn="contaId" style="width: 20%">
                     Conta
                     <p-sortIcon field="contaId" />
                 </th>
-                <th pSortableColumn="categoriaId" style="width: 12%">
+                <th pSortableColumn="categoriaId" style="width: 20%">
                     Categoria
                     <p-sortIcon field="categoriaId" />
                 </th>
@@ -139,33 +131,17 @@
                     Valor
                     <p-sortIcon field="valor" />
                 </th>
-                <th style="width: 12%" class="text-center">Ações</th>
+                <th style="width: 11%" class="text-center">Ações</th>
             </tr>
         </ng-template>
 
         <ng-template #body let-lancamento>
             <tr>
-                <td>{{ lancamento.id }}</td>
                 <td>
                     <div class="flex items-center gap-2">
                         <i class="pi pi-calendar text-lg"></i>
                         <span>{{ formatDate(lancamento.data) }}</span>
                     </div>
-                </td>
-                <td>
-                    @if (lancamento.tipo === 'RECEITA') {
-                        <span
-                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                            <i class="pi pi-arrow-up"></i>
-                            Receita
-                        </span>
-                    } @else {
-                        <span
-                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                            <i class="pi pi-arrow-down"></i>
-                            Despesa
-                        </span>
-                    }
                 </td>
                 <td>
                     <div class="flex items-center gap-2">
