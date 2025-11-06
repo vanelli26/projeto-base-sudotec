@@ -17,8 +17,10 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LancamentoService } from '@/services/lancamento.service';
 import { CategoryService } from '@/services/category.service';
+import { ContaService } from '@/services/conta.service';
 import { Lancamento } from '@/models/lancamento.model';
 import { Category } from '@/models/category.model';
+import { Conta } from '@/models/conta.model';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 
@@ -32,12 +34,14 @@ import { InputIcon } from 'primeng/inputicon';
 export class LancamentosList implements OnInit {
     lancamentoService = inject(LancamentoService);
     categoryService = inject(CategoryService);
+    contaService = inject(ContaService);
     messageService = inject(MessageService);
     confirmationService = inject(ConfirmationService);
 
     lancamentos: Lancamento[] = [];
     lancamentosFiltrados: Lancamento[] = [];
     categorias: Category[] = [];
+    contas: Conta[] = [];
     lancamentoDialog: boolean = false;
     lancamento: Lancamento = {} as Lancamento;
     submitted: boolean = false;
@@ -60,6 +64,7 @@ export class LancamentosList implements OnInit {
     ngOnInit() {
         this.loadLancamentos();
         this.loadCategorias();
+        this.loadContas();
     }
 
     loadCategorias() {
@@ -72,6 +77,21 @@ export class LancamentosList implements OnInit {
                     severity: 'error',
                     summary: 'Erro',
                     detail: 'Erro ao carregar categorias'
+                });
+            }
+        });
+    }
+
+    loadContas() {
+        this.contaService.getContas().subscribe({
+            next: (contas) => {
+                this.contas = contas;
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Erro',
+                    detail: 'Erro ao carregar contas'
                 });
             }
         });
@@ -266,6 +286,12 @@ export class LancamentosList implements OnInit {
         if (!categoriaId) return '-';
         const categoria = this.categorias.find(c => c.id === categoriaId);
         return categoria?.nome || '-';
+    }
+
+    getContaNome(contaId?: number): string {
+        if (!contaId) return '-';
+        const conta = this.contas.find(c => c.id === contaId);
+        return conta?.descricao || '-';
     }
 
     criarLancamentosParcelados() {

@@ -111,31 +111,35 @@
 
         <ng-template #header>
             <tr>
-                <th pSortableColumn="id" style="width: 7%">
+                <th pSortableColumn="id" style="width: 6%">
                     ID
                     <p-sortIcon field="id" />
                 </th>
-                <th pSortableColumn="data" style="width: 10%">
+                <th pSortableColumn="data" style="width: 9%">
                     Data
                     <p-sortIcon field="data" />
                 </th>
-                <th pSortableColumn="tipo" style="width: 10%">
+                <th pSortableColumn="tipo" style="width: 9%">
                     Tipo
                     <p-sortIcon field="tipo" />
                 </th>
-                <th pSortableColumn="categoriaId" style="width: 15%">
+                <th pSortableColumn="contaId" style="width: 12%">
+                    Conta
+                    <p-sortIcon field="contaId" />
+                </th>
+                <th pSortableColumn="categoriaId" style="width: 12%">
                     Categoria
                     <p-sortIcon field="categoriaId" />
                 </th>
-                <th pSortableColumn="descricao" style="width: 33%">
+                <th pSortableColumn="descricao" style="width: 30%">
                     Descrição
                     <p-sortIcon field="descricao" />
                 </th>
-                <th pSortableColumn="valor" style="width: 12%">
+                <th pSortableColumn="valor" style="width: 10%">
                     Valor
                     <p-sortIcon field="valor" />
                 </th>
-                <th style="width: 13%" class="text-center">Ações</th>
+                <th style="width: 12%" class="text-center">Ações</th>
             </tr>
         </ng-template>
 
@@ -162,6 +166,12 @@
                             Despesa
                         </span>
                     }
+                </td>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-wallet text-lg"></i>
+                        <span>{{ getContaNome(lancamento.contaId) }}</span>
+                    </div>
                 </td>
                 <td>
                     <div class="flex items-center gap-2">
@@ -208,7 +218,7 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="7" class="text-center py-8">
+                <td colspan="8" class="text-center py-8">
                     <div class="flex flex-col items-center gap-3">
                         <i class="pi pi-inbox text-4xl text-muted-color"></i>
                         <p class="text-muted-color text-lg">Nenhum lançamento encontrado</p>
@@ -282,6 +292,23 @@
                     optionLabel="nome"
                     optionValue="id"
                     placeholder="Selecione uma categoria"
+                    [showClear]="true"
+                    appendTo="body"
+                    styleClass="w-full">
+                </p-select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="conta" class="font-semibold">
+                    Conta
+                </label>
+                <p-select
+                    id="conta"
+                    [(ngModel)]="lancamento.contaId"
+                    [options]="contas"
+                    optionLabel="descricao"
+                    optionValue="id"
+                    placeholder="Selecione uma conta"
                     [showClear]="true"
                     appendTo="body"
                     styleClass="w-full">
